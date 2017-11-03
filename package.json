@@ -1,0 +1,22 @@
+{
+  "name": "danfe-mail",
+  "version": "0.0.1",
+  "description": "Servico de recebimento de danfes por e-mail",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabrielcarneiro97/danfe-mail.git"
+  },
+  "author": "Gabriel Carneiro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gabrielcarneiro97/danfe-mail/issues"
+  },
+  "homepage": "https://github.com/gabrielcarneiro97/danfe-mail#readme",
+  "dependencies": {
+    "imap": "^0.8.19"
+  }
+}
