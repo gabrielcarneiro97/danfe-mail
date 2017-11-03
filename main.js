@@ -4,7 +4,6 @@ const inspect = require('util').inspect,
 	Imap    = require('imap'),
 	password = process.env.passEmail;
 
-
 var imap = new Imap({
   user: 'arquivo@andreacontabilidade.com',
   password: password,
@@ -32,7 +31,7 @@ function buildAttMessageFunction(attachment) {
   var encoding = attachment.encoding;
 
   return function (msg, seqno) {
-  	
+
   	if(!fs.existsSync('./notas')) fs.mkdirSync('notas');
 
     var prefix = '(#' + seqno + ') ';
