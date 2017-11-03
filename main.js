@@ -32,6 +32,9 @@ function buildAttMessageFunction(attachment) {
   var encoding = attachment.encoding;
 
   return function (msg, seqno) {
+  	
+  	if(!fs.existsSync('./notas')) fs.mkdirSync('notas');
+
     var prefix = '(#' + seqno + ') ';
     msg.on('body', function(stream, info) {
       //Create a write stream so that we can stream the attachment to file;
