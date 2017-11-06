@@ -3,7 +3,8 @@ const inspect = require('util').inspect,
 	base64  = require('base64-stream'),
 	Imap    = require('imap'),
 	password = process.env.passEmail,
-	fullDir = process.env.fullDir;
+	fullDir = process.env.fullDir,
+	email = process.env.email;
 
 function findAttachmentParts(struct, attachments) {
   attachments = attachments ||  [];
