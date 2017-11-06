@@ -55,7 +55,7 @@ function buildAttMessageFunction(attachment, dir) {
 
 
 var imap = new Imap({
-  user: 'arquivo@andreacontabilidade.com',
+  user: email,
   password: password,
   host: 'imap.gmail.com',
   port: 993,
