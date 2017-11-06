@@ -12,7 +12,6 @@ var invoke = () => {
 			last = m.data.seq;
 			logger.send('message', {type: 'log', data: m.data});
 		}
-		}
 		if(m.type === 'killme')
 			check.kill('SIGINT')
 	})
