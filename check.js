@@ -91,11 +91,12 @@ imap.once('ready', function() {
         stream.once('end', function() {
           let name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
           dir = fullDir + name;
-          process.send({type:'seq', 
-      	data: {
-      		seq: seqno,
-      		name: name
-      	}});
+        	process.send({type:'seq', 
+      			data: {
+      				seq: seqno,
+      				name: name
+      			}
+      		});
         });
       });
       msg.once('attributes', function(attrs) {
