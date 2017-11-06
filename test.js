@@ -6,6 +6,14 @@ const inspect = require('util').inspect,
 	fullDir = process.env.fullDir || './notas/',
 	email = process.env.email;
 
+var imap = new Imap({
+  user: email,
+  password: password,
+  host: 'imap.gmail.com',
+  port: 993,
+  tls: true
+});
+
 function findAttachmentParts(struct, attachments) {
   attachments = attachments ||  [];
   for (var i = 0, len = struct.length, r; i < len; ++i) {
@@ -20,24 +28,18 @@ function findAttachmentParts(struct, attachments) {
   return attachments;
 }
 
-function buildAttMessageFunction(attachment, dir, num) {
+function buildAttMessageFunction(attachment) {
   var filename = attachment.params.name;
   var encoding = attachment.encoding;
 
   return function (msg, seqno) {
-
-  	if(!fs.existsSync(dir)) fs.mkdirSync(dir);
-
     var prefix = '(#' + seqno + ') ';
     msg.on('body', function(stream, info) {
       //Create a write stream so that we can stream the attachment to file;
       console.log(prefix + 'Streaming this attachment to file', filename, info);
-      var writeStream = fs.createWriteStream(dir + "/" + filename);
+      var writeStream = fs.createWriteStream('./notas/' + filename);
       writeStream.on('finish', function() {
         console.log(prefix + 'Done writing to file %s', filename);
-
-        console.log(num)
-
       });
 
       //stream.pipe(writeStream); this would write base64 data to the file.
@@ -56,58 +58,29 @@ function buildAttMessageFunction(attachment, dir, num) {
   };
 }
 
-
-var imap = new Imap({
-  user: email,
-  password: password,
-  host: 'imap.gmail.com',
-  port: 993,
-  tls: true
-});
-
-var last = '';
-
-process.on('message', m => {
-	if(m.type === 'last'){
-		last = m.data;
-	}
-});
-
 imap.once('ready', function() {
   imap.openBox('Notas', true, function(err, box) {
   	total = box.messages.total;
     if (err) throw err;
-    var f = imap.seq.fetch(`${total - 10}:${total}` , {
+    var f = imap.seq.fetch(`${total - 10}:${total}`, {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });
-
     f.on('message', function (msg, seqno) {
-
+      console.log('Message #%d', seqno);
       var prefix = '(#' + seqno + ') ';
-      let dir = './notas';
-      let num = 'undef';
       msg.on('body', function(stream, info) {
         var buffer = '';
         stream.on('data', function(chunk) {
           buffer += chunk.toString('utf8');
         });
         stream.once('end', function() {
-          let name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
-          num = Imap.parseHeader(buffer).subject[0].split(" - ")[1];
-          console.log(num)
-          dir = fullDir + name;
-        	process.send({type:'seq', 
-      			data: {
-      				seq: seqno,
-      				name: name
-      			}
-      		});
+          console.log(prefix + 'Parsed header: %s', Imap.parseHeader(buffer));
         });
       });
       msg.once('attributes', function(attrs) {
-
         var attachments = findAttachmentParts(attrs.struct);
+        console.log(prefix + 'Has attachments: %d', attachments.length);
         for (var i = 0, len=attachments.length ; i < len; ++i) {
           var attachment = attachments[i];
           /*This is how each attachment looks like {
@@ -124,19 +97,19 @@ imap.once('ready', function() {
               language: null
             }
           */
+          console.log(prefix + 'Fetching attachment %s', attachment.params.name);
           var f = imap.fetch(attrs.uid , {
             bodies: [attachment.partID],
             struct: true
           });
           //build function to process attachment message
-          f.on('message', buildAttMessageFunction(attachment, dir, num));
+          f.on('message', buildAttMessageFunction(attachment));
         }
       });
       msg.once('end', function() {
         console.log(prefix + 'Finished email');
       });
     });
-
     f.once('error', function(err) {
       console.log('Fetch error: ' + err);
     });
@@ -153,8 +126,6 @@ imap.once('error', function(err) {
 
 imap.once('end', function() {
   console.log('Connection ended');
-  process.send({type: 'killme'})
 });
-
 
 imap.connect();
