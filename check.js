@@ -3,7 +3,7 @@ const inspect = require('util').inspect,
 	base64  = require('base64-stream'),
 	Imap    = require('imap'),
 	password = process.env.passEmail,
-	fullDir = process.env.fullDir,
+	fullDir = process.env.fullDir || './',
 	email = process.env.email;
 
 function findAttachmentParts(struct, attachments) {
@@ -80,9 +80,7 @@ imap.once('ready', function() {
     });
 
     f.on('message', function (msg, seqno) {
-      console.log('Message #%d', seqno);
 
-      process.send({type:'seq', data: seqno});
       var prefix = '(#' + seqno + ') ';
       let dir = './notas';
       msg.on('body', function(stream, info) {
@@ -92,14 +90,17 @@ imap.once('ready', function() {
         });
         stream.once('end', function() {
           let name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
-          console.log(prefix + 'Parsed header: %s', name);
           dir = fullDir + name;
+          process.send({type:'seq', 
+      	data: {
+      		seq: seqno,
+      		name: name
+      	}});
         });
       });
       msg.once('attributes', function(attrs) {
 
         var attachments = findAttachmentParts(attrs.struct);
-        console.log(prefix + 'Has attachments: %d', attachments.length);
         for (var i = 0, len=attachments.length ; i < len; ++i) {
           var attachment = attachments[i];
           /*This is how each attachment looks like {
@@ -116,7 +117,6 @@ imap.once('ready', function() {
               language: null
             }
           */
-          console.log(prefix + 'Fetching attachment %s', attachment.params.name);
           var f = imap.fetch(attrs.uid , {
             bodies: [attachment.partID],
             struct: true
