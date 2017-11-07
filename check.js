@@ -34,7 +34,7 @@ imap.once('ready', function() {
     
     if (err) throw err;
 
-    var f = imap.seq.fetch(`${total - 10}:${total}` , {
+    var f = imap.seq.fetch(`*:1` , {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });
@@ -58,6 +58,7 @@ imap.once('ready', function() {
           name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
           num = Imap.parseHeader(buffer).subject[0].split(" - ")[1];
           dir = fullDir + name;
+          console.log(Imap.parseHeader(buffer))
         });
       });
 
@@ -103,9 +104,6 @@ imap.once('ready', function() {
               var writeStream = fs.createWriteStream(dir + "/" + filename);
               writeStream.on('finish', function() {
                 console.log(prefix + 'Done writing to file %s', filename);
-
-                console.log(num)
-
               });
 
               //stream.pipe(writeStream); this would write base64 data to the file.
@@ -120,6 +118,13 @@ imap.once('ready', function() {
             });
 
             msg.once('end', function() {
+              console.log(dir + "/" + filename)
+              console.log(dir + "/" + num + ".pdf")
+              if(filename.endsWith('.pdf'))
+                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf")
+              if(filename.endsWith('.xml'))
+                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml")
+
               console.log(prefix + 'Finished attachment %s', filename);
             });
           });
