@@ -2,6 +2,7 @@ const inspect = require('util').inspect,
 	fs      = require('fs'),
 	base64  = require('base64-stream'),
 	Imap    = require('imap'),
+  log = require("./log"),
 	password = process.env.passEmail,
 	fullDir = process.env.fullDir || './notas/',
 	email = process.env.email;
@@ -33,8 +34,8 @@ imap.once('ready', function() {
     let total = box.messages.total;
     
     if (err) throw err;
-
-    var f = imap.seq.fetch(`*:1` , {
+    //${total}:${total - 10}
+    var f = imap.seq.fetch(`${total}:${total - 10}` , {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });
@@ -58,7 +59,7 @@ imap.once('ready', function() {
           name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
           num = Imap.parseHeader(buffer).subject[0].split(" - ")[1];
           dir = fullDir + name;
-          console.log(Imap.parseHeader(buffer))
+          log.add(JSON.stringify(Imap.parseHeader(buffer)), seqno);
         });
       });
 
@@ -96,14 +97,11 @@ imap.once('ready', function() {
 
             if(!fs.existsSync(dir)) fs.mkdirSync(dir);
 
-            var prefix = '(#' + seqno + ') ';
-
             msg.on('body', function(stream, info) {
               //Create a write stream so that we can stream the attachment to file;
-              console.log(prefix + 'Streaming this attachment to file', filename, info);
               var writeStream = fs.createWriteStream(dir + "/" + filename);
               writeStream.on('finish', function() {
-                console.log(prefix + 'Done writing to file %s', filename);
+                log.add('Done writing to file' + filename, seqno);
               });
 
               //stream.pipe(writeStream); this would write base64 data to the file.
@@ -118,27 +116,25 @@ imap.once('ready', function() {
             });
 
             msg.once('end', function() {
-              console.log(dir + "/" + filename)
-              console.log(dir + "/" + num + ".pdf")
               if(filename.endsWith('.pdf'))
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf")
               if(filename.endsWith('.xml'))
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml")
 
-              console.log(prefix + 'Finished attachment %s', filename);
+              log.add('Finished attachment' + filename, seqno);
             });
           });
 
         }
-        console.log(prefix + 'Finished email');
+        log.add('Finished email', seqno);
       });
     });
 
     f.once('error', function(err) {
-      console.log('Fetch error: ' + err);
+      log.add('Fetch error: ' + err);
     });
     f.once('end', function() {
-      console.log('Done fetching all messages!');
+      log.add('Done fetching all messages!');
       imap.end();
     });
   });
