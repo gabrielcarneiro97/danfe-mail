@@ -35,7 +35,7 @@ imap.once('ready', function() {
     
     if (err) throw err;
     //${total}:${total - 10}
-    var f = imap.seq.fetch(`1:*` , {
+    var f = imap.seq.fetch(`${total}:${total - 10}` , {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });

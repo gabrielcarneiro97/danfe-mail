@@ -16,5 +16,5 @@ var invoke = () => {
 }
 
 invoke();
-timers.setInterval(invoke, 6000000)
+timers.setInterval(invoke, 60000)
 
