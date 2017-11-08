@@ -1,6 +1,6 @@
 {
   "name": "danfe-mail",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Servico de recebimento de danfes por e-mail",
   "main": "main.js",
   "scripts": {

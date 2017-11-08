@@ -5,10 +5,11 @@ const inspect = require('util').inspect,
   log = require("./log"),
 	password = process.env.passEmail,
 	fullDir = process.env.fullDir || './notas/',
-	email = process.env.email;
+	email = process.env.email,
+  checkNum = 10;
 
 function findAttachmentParts(struct, attachments) {
-  attachments = attachments ||  [];
+  attachments = attachments || [];
   for (let i = 0, len = struct.length, r; i < len; ++i) {
     if (Array.isArray(struct[i])) {
       findAttachmentParts(struct[i], attachments);
@@ -30,24 +31,28 @@ var imap = new Imap({
 });
 
 imap.once('ready', function() {
+  //Trocar para 'INBOX' caso queira que o check seja feito na caixa de entrada.
   imap.openBox('Notas', true, function(err, box) {
     let total = box.messages.total;
     
     if (err) throw err;
-    //${total}:${total - 10}
-    var f = imap.seq.fetch(`${total}:${total - 10}` , {
+    //Para verificar toda a caixa trocar `${total}:${total - checkNum}` para "*"
+    var f = imap.seq.fetch(`${total}:${total - checkNum}` , {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });
 
     f.on('message', function (msg, seqno) {
 
-      let prefix = '(#' + seqno + ') ';
-      let dir = './notas';
-      let attachments = [];
-      let num = undefined;
-      let name = undefined;
-      let attrs = undefined;
+      let prefix = '(#' + seqno + ') ',
+        //Inicializa o diretório, caso o diretório não seja passado, fica sendo uma pasta chamada notas no diretório raiz.
+        dir = './notas',
+        //Inicializa o array de anexos.
+        attachments = [],
+        //Inicializa alguns atributos básicos, como número da nota e nome da empresa.
+        num = undefined,
+        name = undefined,
+        attrs = undefined;
 
       msg.on('body', function(stream, info) {
         let buffer = '';
@@ -56,8 +61,11 @@ imap.once('ready', function() {
         });
 
         stream.once('end', function() {
+          //Pega o nome da empresa que está no assunto do e-mail.
           name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
+          //Pega o número da nota que está no assunto do e-mail.
           num = Imap.parseHeader(buffer).subject[0].split(" - ")[1];
+          //Concatena o diretório.
           dir = fullDir + name;
           log.add(JSON.stringify(Imap.parseHeader(buffer)), seqno);
         });
@@ -65,6 +73,7 @@ imap.once('ready', function() {
 
       msg.once('attributes', function(a) {
         attrs = a;
+        //Encontra os anexos na mensagem.
         attachments = findAttachmentParts(attrs.struct);
       });
 
@@ -90,9 +99,10 @@ imap.once('ready', function() {
             bodies: [attachment.partID],
             struct: true
           });
-          let filename = attachment.params.name;
-          let encoding = attachment.encoding;
-          //build function to process attachment message
+
+          let filename = attachment.params.name,
+            encoding = attachment.encoding;
+          //Processa os anexos da mensagem.
           f.on('message', function (msg, seqno) {
 
             if(!fs.existsSync(dir)) fs.mkdirSync(dir);
@@ -117,16 +127,18 @@ imap.once('ready', function() {
 
             msg.once('end', function() {
 
+              //Confere se o nome contém a série da nota, se sim, ele pega o número da nota da série.
               if(filename.length > 8 && fs.statSync(dir + "/" + filename).size > 0) 
                 num = filename.slice(25, 34);
               
+              //Troca o nome do arquivo da série para o número.
               if(filename.endsWith('.pdf') && fs.statSync(dir + "/" + filename).size > 0){
-                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf")
-                log.add(`Renamed ${filename} to ${num}.pdf`, seqno)
+                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf");
+                log.add(`Renamed ${filename} to ${num}.pdf`, seqno);
               }
               if(filename.endsWith('.xml') && fs.statSync(dir + "/" + filename).size > 0){
-                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml")
-                log.add(`Renamed ${filename} to ${num}.xml`, seqno)
+                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml");
+                log.add(`Renamed ${filename} to ${num}.xml`, seqno);
               }
 
               log.add('Finished attachment ' + filename, seqno);
@@ -154,7 +166,7 @@ imap.once('error', function(err) {
 
 imap.once('end', function() {
   console.log('Connection ended');
-  process.send({type: 'killme'})
+  process.send({type: 'killme'});
 });
 
 
