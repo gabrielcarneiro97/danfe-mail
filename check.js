@@ -9,7 +9,7 @@ const inspect = require('util').inspect,
 
 function findAttachmentParts(struct, attachments) {
   attachments = attachments ||  [];
-  for (var i = 0, len = struct.length, r; i < len; ++i) {
+  for (let i = 0, len = struct.length, r; i < len; ++i) {
     if (Array.isArray(struct[i])) {
       findAttachmentParts(struct[i], attachments);
     } else {
@@ -50,7 +50,7 @@ imap.once('ready', function() {
       let attrs = undefined;
 
       msg.on('body', function(stream, info) {
-        var buffer = '';
+        let buffer = '';
         stream.on('data', function(chunk) {
           buffer += chunk.toString('utf8');
         });
@@ -70,8 +70,8 @@ imap.once('ready', function() {
 
       msg.once('end', function() {
 
-        for (var i = 0, len=attachments.length ; i < len; ++i) {
-          var attachment = attachments[i];
+        for (let i = 0, len=attachments.length ; i < len; ++i) {
+          let attachment = attachments[i];
           /*This is how each attachment looks like {
               partID: '2',
               type: 'application',
