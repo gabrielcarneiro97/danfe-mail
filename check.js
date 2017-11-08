@@ -122,11 +122,11 @@ imap.once('ready', function() {
               
               if(filename.endsWith('.pdf') && fs.statSync(dir + "/" + filename).size > 0){
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf")
-                log.add(`Renamed ${filename} to ${num}.pdf`)
+                log.add(`Renamed ${filename} to ${num}.pdf`, seqno)
               }
               if(filename.endsWith('.xml') && fs.statSync(dir + "/" + filename).size > 0){
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml")
-                log.add(`Renamed ${filename} to ${num}.xml`)
+                log.add(`Renamed ${filename} to ${num}.xml`, seqno)
               }
 
               log.add('Finished attachment ' + filename, seqno);
