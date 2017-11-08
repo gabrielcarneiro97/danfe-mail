@@ -35,7 +35,7 @@ imap.once('ready', function() {
     
     if (err) throw err;
     //${total}:${total - 10}
-    var f = imap.seq.fetch(`${total}:${total - 10}` , {
+    var f = imap.seq.fetch(`${total}:${total - 106}` , {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });
@@ -116,10 +116,18 @@ imap.once('ready', function() {
             });
 
             msg.once('end', function() {
-              if(filename.endsWith('.pdf') && fs.statSync(dir + "/" + filename).size > 0)
+
+              if(filename.length > 8 && fs.statSync(dir + "/" + filename).size > 0) 
+                num = filename.slice(25, 34);
+              
+              if(filename.endsWith('.pdf') && fs.statSync(dir + "/" + filename).size > 0){
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf")
-              if(filename.endsWith('.xml') && fs.statSync(dir + "/" + filename).size > 0)
+                log.add(`Renamed ${filename} to ${num}.pdf`)
+              }
+              if(filename.endsWith('.xml') && fs.statSync(dir + "/" + filename).size > 0){
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml")
+                log.add(`Renamed ${filename} to ${num}.xml`)
+              }
 
               log.add('Finished attachment ' + filename, seqno);
             });
