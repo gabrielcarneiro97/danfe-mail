@@ -4,7 +4,7 @@ Serviço que faz acesso a um e-mail e faz download das notas fiscais anexadas en
 
 ## Instruções de configuração.
 
-**Todas as constantes estão registradas no arquivo _arquivo.js_.**
+**Todas as constantes estão registradas no arquivo _config.js_.**
 
 O e-mail, a senha e o diretório para a onde as notas serão salvas devem ser salvos cada um em uma Environment Variable, sendo o e-mail na constante _email_, a senha na constante _passEmail_ e o diretório na constante _fullDir_.
 
