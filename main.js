@@ -1,11 +1,17 @@
 const cp = require('child_process'),
 	timers = require('timers'),
-	time = 60; //Define o intervalo como 60 segundos.
+	consts = require('./config').consts,
+	interval = consts.interval; //Define o intervalo como 60 segundos.
 	
 var invoke = () => {
 	//Inicializa o processo filho onde acontecerá o check da caixa direcionada.
 	var check = cp.fork('./check.js', [], [ 'pipe', 'pipe', 'pipe', 'ipc' ]);
-	check.send({type: 'last', data: last});
+	check.on('message', m => {
+		//Recebe mensagem para matar o processo filho.
+		if(m.type === 'killme')
+			check.kill('SIGINT')
+	})
+	var check2 = cp.fork('./check2.js', [], [ 'pipe', 'pipe', 'pipe', 'ipc' ]);
 	check.on('message', m => {
 		//Recebe mensagem para matar o processo filho.
 		if(m.type === 'killme')
@@ -16,5 +22,5 @@ var invoke = () => {
 //Invoca o metodo de check uma vez.
 invoke();
 //Chama a função a cada minuto.
-timers.setInterval(invoke, time * 1000);
+timers.setInterval(invoke, interval * 1000);
 

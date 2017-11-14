@@ -4,9 +4,9 @@ const inspect = require('util').inspect,
 	Imap    = require('imap'),
   log = require("./log"),
   consts = require("./config").consts,
-	password = consts.password,
-	fullDir = consts.fullDir,
-	email = consts.email,
+  password = consts.password,
+  fullDir = consts.fullDir,
+  email = consts.email,
   checkNum = consts.checkNum;
 
 function findAttachmentParts(struct, attachments) {
@@ -33,7 +33,7 @@ var imap = new Imap({
 
 imap.once('ready', function() {
   //Trocar para 'INBOX' caso queira que o check seja feito na caixa de entrada.
-  imap.openBox('Notas', true, function(err, box) {
+  imap.openBox('Notas2', true, function(err, box) {
     let total = box.messages.total;
     
     if (err) throw err;
@@ -62,10 +62,11 @@ imap.once('ready', function() {
         });
 
         stream.once('end', function() {
+          let str = Imap.parseHeader(buffer).subject[0].split('Nota Fiscal número ')[1].split('emitida por ');
           //Pega o nome da empresa que está no assunto do e-mail.
-          name = Imap.parseHeader(buffer).subject[0].split(" - ")[2];
+          name = str[1];
           //Pega o número da nota que está no assunto do e-mail.
-          num = Imap.parseHeader(buffer).subject[0].split(" - ")[1];
+          num = str[0];
           //Concatena o diretório.
           dir = fullDir + name;
           log.add(JSON.stringify(Imap.parseHeader(buffer)), seqno);
@@ -129,15 +130,17 @@ imap.once('ready', function() {
             msg.once('end', function() {
 
               //Confere se o nome contém a série da nota, se sim, ele pega o número da nota da série.
-              if(filename.length > 8 && fs.statSync(dir + "/" + filename).size > 0) 
-                num = filename.slice(25, 34);
+              if(filename.length > 8){
+                num = filename.slice(28, 37);
+              }
               
               //Troca o nome do arquivo da série para o número.
-              if(filename.endsWith('.pdf') && fs.statSync(dir + "/" + filename).size > 0){
+              if(filename.endsWith('.pdf') && fs.statSync(dir + "/" + filename).size > 0){                
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".pdf");
                 log.add(`Renamed ${filename} to ${num}.pdf`, seqno);
               }
-              if(filename.endsWith('.xml') && fs.statSync(dir + "/" + filename).size > 0){
+
+              if(filename.endsWith('.xml')){
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml");
                 log.add(`Renamed ${filename} to ${num}.xml`, seqno);
               }
