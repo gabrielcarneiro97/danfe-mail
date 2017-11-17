@@ -8,7 +8,7 @@ Serviço que faz acesso a um e-mail e faz download das notas fiscais anexadas en
 
 O e-mail, a senha e o diretório para a onde as notas serão salvas devem ser salvos cada um em uma Environment Variable, sendo o e-mail na constante _email_, a senha na constante _passEmail_ e o diretório na constante _fullDir_.
 
-O IMAP está configurado para acessar um e-mail gmail, essas informações podem ser trocadas no arquivo _check.js_, alterando as informações na variável _imap_. 
+O IMAP está configurado para acessar um e-mail gmail, essas informações podem ser trocadas no arquivo _config.js_, alterando as informações na variável _imap_.
 **OBS:** deve ser feito a liberação de aplicações menos seguras, link de instruções: https://support.google.com/accounts/answer/6010255?hl=pt-BR
 
 O serviço está configurado para olhar apenas a caixa "Notas", deve-se configurar o e-mail para que ele direcione as notas para essa caixa, ou se preferir trocar na linha 34 do arquivo _check.js_ para a caixa desejada. 

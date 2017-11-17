@@ -7,7 +7,8 @@ const inspect = require('util').inspect,
 	password = consts.password,
 	fullDir = consts.fullDir,
 	email = consts.email,
-  checkNum = consts.checkNum;
+  checkNum = consts.checkNum,
+  imap = new Imap(consts.imap);
 
 function findAttachmentParts(struct, attachments) {
   attachments = attachments || [];
@@ -23,22 +24,16 @@ function findAttachmentParts(struct, attachments) {
   return attachments;
 }
 
-var imap = new Imap({
-  user: email,
-  password: password,
-  host: 'imap.gmail.com',
-  port: 993,
-  tls: true
-});
-
 imap.once('ready', function() {
   //Trocar para 'INBOX' caso queira que o check seja feito na caixa de entrada.
   imap.openBox('Notas', true, function(err, box) {
     let total = box.messages.total;
+
+    let checkUntil = total - checkNum <= 0 ? 1 : total - checkNum;
     
     if (err) throw err;
-    //Para verificar toda a caixa trocar `${total}:${total - checkNum}` para "*"
-    var f = imap.seq.fetch(`${total}:${total - checkNum}` , {
+    //Para verificar toda a caixa trocar `${total}:${checkUntil}` para "*"
+    var f = imap.seq.fetch(`${total}:${checkUntil}` , {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
       struct: true
     });
