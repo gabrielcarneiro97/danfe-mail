@@ -58,13 +58,24 @@ imap.once('ready', function() {
         });
 
         stream.once('end', function() {
-          let str = Imap.parseHeader(buffer).subject[0].split('Nota Fiscal número ')[1].split('emitida por ');
-          //Pega o nome da empresa que está no assunto do e-mail.
-          name = str[1];
-          //Pega o número da nota que está no assunto do e-mail.
-          num = str[0];
-          //Concatena o diretório.
-          dir = fullDir + name;
+          let str = Imap.parseHeader(buffer).subject[0];
+
+          if(str.startsWith('Altimus -')) {
+ 			name = str.split('Altimus - Notas fiscais emitidas da empresa ')[1].split(' , referentes ao período de ')[0];
+          	str = str.split('referentes ao período de ')[1].replace(/\//g, '-').replace(' à ', ' ');
+          }
+          else {
+			str = Imap.parseHeader(buffer).subject[0].split('Nota Fiscal número ')[1].split('emitida por ');
+			//Pega o nome da empresa que está no assunto do e-mail.
+			name = str[1];
+			//Pega o número da nota que está no assunto do e-mail.
+			num = str[0];
+			
+          }
+
+			//Concatena o diretório.
+			dir = fullDir + name;
+           
           log.add(JSON.stringify(Imap.parseHeader(buffer)), seqno);
         });
       });
@@ -139,6 +150,10 @@ imap.once('ready', function() {
               if(filename.endsWith('.xml')){
                 fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml");
                 log.add(`Renamed ${filename} to ${num}.xml`, seqno);
+              }
+
+              if(filename.endsWith('.zip')){
+
               }
 
               log.add('Finished attachment ' + filename, seqno);
