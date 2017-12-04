@@ -133,8 +133,11 @@ imap.once('ready', function() {
                 log.add(`Renamed ${filename} to ${num}.pdf`, seqno);
               }
               if(filename.endsWith('.xml') && fs.statSync(dir + "/" + filename).size > 0){
-                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml");
-                log.add(`Renamed ${filename} to ${num}.xml`, seqno);
+                fs.writeFile(dir + '/' + num + '.xml', fs.readFileSync(dir + "/" + filename, 'utf8'),
+                 () => {
+                   log.add(`Copied from ${filename} to ${num}.xml`, seqno);
+                });
+                
               }
 
               log.add('Finished attachment ' + filename, seqno);

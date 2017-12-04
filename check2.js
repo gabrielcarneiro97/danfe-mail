@@ -1,7 +1,8 @@
 const inspect = require('util').inspect,
 	fs      = require('fs'),
 	base64  = require('base64-stream'),
-	Imap    = require('imap'),
+  Imap    = require('imap'),
+  quotedPrintable = require('quoted-printable'),
   log = require("./log"),
   consts = require("./config").consts,
   password = consts.password,
@@ -111,6 +112,7 @@ imap.once('ready', function() {
 
           let filename = attachment.params.name,
             encoding = attachment.encoding;
+
           //Processa os anexos da mensagem.
           f.on('message', function (msg, seqno) {
 
@@ -128,7 +130,8 @@ imap.once('ready', function() {
               if (encoding === 'BASE64') {
                 //the stream is base64 encoded, so here the stream is decode on the fly and piped to the write stream (file)
                 stream.pipe(base64.decode()).pipe(writeStream);
-              } else  {
+              } 
+              else  {
                 //here we have none or some other decoding streamed directly to the file which renders it useless probably
                 stream.pipe(writeStream);
               }
@@ -148,8 +151,11 @@ imap.once('ready', function() {
               }
 
               if(filename.endsWith('.xml')){
-                fs.renameSync(dir + "/" + filename, dir + "/" + num + ".xml");
-                log.add(`Renamed ${filename} to ${num}.xml`, seqno);
+                fs.writeFile(dir + '/' + num + '.xml', quotedPrintable.decode(fs.readFileSync(dir + "/" + filename, 'utf8')),
+                  () => {
+                    log.add(`Copied from ${filename} to ${num}.xml`, seqno);
+                });
+        
               }
 
               if(filename.endsWith('.zip')){
