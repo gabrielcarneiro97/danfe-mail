@@ -136,6 +136,7 @@ imap.once('ready', function() {
                 fs.writeFile(dir + '/' + num + '.xml', fs.readFileSync(dir + "/" + filename, 'utf8'),
                  () => {
                    log.add(`Copied from ${filename} to ${num}.xml`, seqno);
+                   fs.unlink(dir + "/" + filename);
                 });
                 
               }
